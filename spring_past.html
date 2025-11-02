@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Spring — Past (Dark Storm on 360)</title>
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+
+  <script>
+    /* ---------- VR button helpers ---------- */
+    AFRAME.registerComponent('link-on-click', {
+      schema: { href: {type: 'string'} },
+      init(){ this.el.addEventListener('click', () => this.data.href && (window.location.href=this.data.href)); }
+    });
+    AFRAME.registerComponent('button-feedback', {
+      schema: { base: {default:'#6fcfb6'}, hover:{default:'#53b49a'}, down:{default:'#3b8a75'} },
+      init(){
+        this.el.setAttribute('material',{color:this.data.base, side:'double'});
+        this.el.addEventListener('mouseenter',()=>this.el.setAttribute('material','color',this.data.hover));
+        this.el.addEventListener('mouseleave',()=>this.el.setAttribute('material','color',this.data.base));
+        this.el.addEventListener('mousedown', ()=>this.el.setAttribute('material','color',this.data.down));
+        this.el.addEventListener('mouseup',   ()=>this.el.setAttribute('material','color',this.data.hover));
+        this.el.addEventListener('touchstart',()=>this.el.setAttribute('material','color',this.data.down));
+        this.el.addEventListener('touchend',  ()=>this.el.setAttribute('material','color',this.data.hover));
+      }
+    });
+
+    /* ---------- Lightning flashes (works on A-Frame 1.5) ---------- */
+    AFRAME.registerComponent('lightning', {
+      schema:{ minInterval:{type:'number',default:1800}, maxInterval:{type:'number',default:5200}, flashes:{type:'int',default:2}, flashDur:{type:'number',default:70}, thunder:{type:'selector'} },
+      init(){ this._schedule(); },
+      _schedule(){
+        const t=this.data.minInterval+Math.random()*(this.data.maxInterval-this.data.minInterval);
+        setTimeout(()=>this._strike(), t);
+      },
+      _strike(){
+        const L=this.el; let i=0; const n=this.data.flashes+Math.floor(Math.random()*2);
+        const one=()=>{
+          L.setAttribute('intensity', 10+Math.random()*8);
+          setTimeout(()=>{
+            L.setAttribute('intensity', 0.06);
+            i++; if(i<n){ setTimeout(one, 60+Math.random()*120); }
+            else {
+              if(this.data.thunder) setTimeout(()=>{ this.data.thunder.components.sound && this.data.thunder.components.sound.playSound(); }, 600+Math.random()*1000);
+              this._schedule();
+            }
+          }, this.data.flashDur);
+        };
+        one();
+      }
+    });
+
+    /* ---------- Rain (line segments, no plugin) ---------- */
+    AFRAME.registerComponent('rain', {
+      schema:{ count:{type:'int',default:14000}, area:{type:'vec3',default:{x:34,y:18,z:34}}, speedMin:{type:'number',default:16}, speedMax:{type:'number',default:30}, dropLength:{type:'number',default:1.1}, color:{type:'color',default:'#6c8ddf'}, opacity:{type:'number',default:1}, slant:{type:'number',default:8} },
+      init(){
+        const THREE=AFRAME.THREE, d=this.data;
+        this._vel=new Float32Array(d.count);
+        this._pos=new Float32Array(d.count*3);
+        const linePositions=new Float32Array(d.count*2*3);
+
+        for(let i=0;i<d.count;i++){
+          const i3=i*3, l=i*6;
+          const x=(Math.random()-0.5)*d.area.x;
+          const y=Math.random()*d.area.y;
+          const z=(Math.random()-0.5)*d.area.z;
+          this._pos.set([x,y,z], i3);
+          this._vel[i]=d.speedMin+Math.random()*(d.speedMax-d.speedMin);
+          linePositions.set([x,y,z, x,y-d.dropLength,z], l);
+        }
+        const geom=new THREE.BufferGeometry();
+        geom.setAttribute('position', new THREE.BufferAttribute(linePositions,3));
+        const mat=new THREE.LineBasicMaterial({color:new THREE.Color(d.color),transparent:true,opacity:d.opacity});
+        this.mesh=new THREE.LineSegments(geom,mat);
+        this.el.setObject3D('mesh',this.mesh);
+        this._positions=linePositions; this._geom=geom;
+      },
+      tick(time, dtMS){
+        const dt=(dtMS||16)/1000, d=this.data, pos=this._positions, drop=this._pos, vel=this._vel, sl=d.slant;
+        for(let i=0;i<d.count;i++){
+          const i3=i*3, l=i*6;
+          let x=drop[i3], y=drop[i3+1], z=drop[i3+2];
+          y-=vel[i]*dt; x+=sl*dt; // slanted wind
+          if(y<-d.area.y*0.5 || x> d.area.x*0.5){ // recycle
+            y=d.area.y*0.5;
+            x=-d.area.x*0.5 + Math.random()*2; // come from left edge
+            z=(Math.random()-0.5)*d.area.z;
+          }
+          drop[i3]=x; drop[i3+1]=y; drop[i3+2]=z;
+          pos[l]=x; pos[l+1]=y; pos[l+2]=z;
+          pos[l+3]=x; pos[l+4]=y-d.dropLength; pos[l+5]=z;
+        }
+        this._geom.attributes.position.needsUpdate=true;
+      }
+    });
+
+    /* ---------- Cloud bands (fast, semi-transparent planes) ---------- */
+    AFRAME.registerComponent('cloud-bands', {
+      schema:{ count:{type:'int',default:6}, speed:{type:'number',default:12}, opacity:{type:'number',default:0.16} },
+      init(){
+        const THREE=AFRAME.THREE;
+        this.planes=[];
+        const group=new THREE.Group();
+        this.el.setObject3D('mesh', group);
+        for(let i=0;i<this.data.count;i++){
+          const w=160+Math.random()*140, h=50+Math.random()*40;
+          const g=new THREE.PlaneGeometry(w,h,1,1);
+          const m=new THREE.MeshBasicMaterial({color:0x6b6b6b, transparent:true, opacity:this.data.opacity});
+          const p=new THREE.Mesh(g,m);
+          p.position.set(-140+Math.random()*40, 35+Math.random()*15, -80+Math.random()*120);
+          p.rotation.set(-(Math.PI/2.5 + Math.random()*0.2), 0, 0.2+Math.random()*0.6);
+          group.add(p); this.planes.push(p);
+        }
+      },
+      tick(time, dtMs){
+        const dt=(dtMs||16)/1000, s=this.data.speed;
+        for(const p of this.planes){
+          p.position.x += s*dt;
+          if(p.position.x>180) p.position.x=-180;
+        }
+      }
+    });
+
+    /* ---------- Meteors/embers streaks ---------- */
+    AFRAME.registerComponent('meteor-shower', {
+      schema:{ count:{type:'int',default:26}, speed:{type:'number',default:28}, color:{type:'color',default:'#ffcf99'} },
+      init(){
+        const THREE=AFRAME.THREE;
+        this.ms=[];
+        const group=new THREE.Group();
+        this.el.setObject3D('mesh',group);
+        for(let i=0;i<this.data.count;i++){
+          const g=new THREE.SphereGeometry(0.6,8,8);
+          const m=new THREE.MeshBasicMaterial({color:new THREE.Color(this.data.color)});
+          const s=new THREE.Mesh(g,m);
+          group.add(s); this.ms.push(s); this._respawn(s,true);
+        }
+      },
+      _respawn(s,initial=false){
+        s.position.set( 80+Math.random()*80, 30+Math.random()*20, -120+Math.random()*80 );
+        s.userData.vx = - (16+Math.random()*26);
+        s.userData.vy = - ( 8+Math.random()*16);
+        s.userData.vz = - (10+Math.random()*26);
+        s.userData.vs = 0.25+Math.random()*0.25;
+        s.scale.set(initial?0.001:0.3, initial?0.001:0.3, initial?0.001:0.3);
+      },
+      tick(time, dtMs){
+        const dt=(dtMs||16)/1000;
+        for(const s of this.ms){
+          s.position.x+=s.userData.vx*dt;
+          s.position.y+=s.userData.vy*dt;
+          s.position.z+=s.userData.vz*dt;
+          const x=s.scale.x + s.userData.vs*dt; s.scale.set(x,x,x);
+          if(s.position.y<-10 || s.position.x<-160 || s.position.z<-220){ this._respawn(s); }
+        }
+      }
+    });
+  </script>
+</head>
+<body>
+  <a-scene>
+
+    <!-- Keep your 360° pano as the background -->
+    <a-sky src="demo.JPG" rotation="0 -90 0"></a-sky>
+
+    <!-- Camera + ray so the Home button is clickable -->
+    <a-entity id="rig" position="0 0 0">
+      <a-entity camera look-controls position="0 1.6 0"
+                cursor="rayOrigin: mouse"
+                raycaster="objects: .clickable"></a-entity>
+      <!-- small gaze cursor for VR -->
+      <a-entity position="0 1.6 -1"
+                geometry="primitive: ring; radiusInner: 0.005; radiusOuter: 0.008"
+                material="color: white; shader: flat"></a-entity>
+    </a-entity>
+
+    <!-- HUD Home button -->
+    <a-entity id="hud" position="0 1.3 -1.2">
+      <a-plane class="clickable" width="0.5" height="0.18"
+               button-feedback link-on-click="href: index.html">
+        <a-entity text="value: Home; align: center; color: #0a2b22; width: 0.9" position="0 0 0.01"></a-entity>
+      </a-plane>
+    </a-entity>
+
+    <!-- Dark storm tint over the photo -->
+    <a-sphere radius="1000" position="0 0 0"
+      material="color: #000; opacity: 0.72; transparent: true; side: back"></a-sphere>
+
+    <!-- Chaotic sky layers -->
+    <a-entity position="0 0 0" cloud-bands="count: 7; speed: 18; opacity: 0.18"></a-entity>
+    <a-entity position="0 26 -40" meteor-shower="count: 30; speed: 30; color: #ffd7a1"></a-entity>
+
+    <!-- Slanted heavy rain volume (centered over viewer) -->
+    <a-entity position="0 7 0" rain="count: 16000; area: 38 18 38; dropLength: 1.1; speedMin: 18; speedMax: 32; slant: 10"></a-entity>
+
+    <!-- Lightning + (optional) thunder sound -->
+    <a-entity id="thunder" sound="src: url(thunder.mp3); autoplay: false; poolSize: 3; volume: 0.7"></a-entity>
+    <a-light type="directional" color="#d7e6ff" position="0 8 -4" intensity="0.06"
+             lightning="minInterval: 1600; maxInterval: 4800; flashes: 2; flashDur: 70; thunder: #thunder"></a-light>
+
+    <!-- Optional looping wind -->
+    <a-entity sound="src: url(wind.mp3); autoplay: true; loop: true; volume: 0.35"></a-entity>
+
+  </a-scene>
+</body>
+</html>
