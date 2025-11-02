@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>360° Video with A-Frame</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <style>
+    /* Simple overlay button in case autoplay is blocked */
+    #playBtn {
+      position: absolute; inset: auto 0 30px 0; margin: 0 auto;
+      width: max-content; padding: 10px 16px; border-radius: 8px;
+      background: rgba(0,0,0,0.6); color: #fff; font-family: sans-serif; cursor: pointer;
+      z-index: 5;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Fallback play button (appears if autoplay is blocked) -->
+  <button id="playBtn" hidden>Tap to Play Video</button>
+
+  <a-scene>
+    <!-- Preload the video in the asset system -->
+    <a-assets>
+      <!-- Replace src with your 360 equirectangular MP4 -->
+      <video id="panoVideo"
+             src="winterFuture.mp4"
+             crossorigin="anonymous"
+             preload="auto"
+             autoplay
+             muted
+             loop
+             playsinline
+             webkit-playsinline>
+      </video>
+    </a-assets>
+
+    <!-- Use the video as the sky texture -->
+    <a-sky src="#panoVideo" rotation="0 -90 0"></a-sky>
+
+    <!-- Camera (look-controls works for desktop + mobile VR) -->
+    <a-entity camera look-controls position="0 1.6 0"></a-entity>
+  </a-scene>
+
+  <script>
+    // Try to start playback immediately; show a button if blocked by autoplay policy.
+    (function () {
+      const video = document.getElementById('panoVideo');
+      const btn = document.getElementById('playBtn');
+
+      function tryPlay() {
+        if (!video) return;
+        const p = video.play();
+        if (p && typeof p.then === 'function') {
+          p.then(() => { btn.hidden = true; }).catch(() => { btn.hidden = false; });
+        }
+      }
+
+      // Attempt on load
+      if (video.readyState >= 2) tryPlay();
+      else video.addEventListener('loadeddata', tryPlay, { once: true });
+
+      // User gesture fallback
+      ['click','touchend'].forEach(evt => {
+        window.addEventListener(evt, tryPlay, { once: true });
+        btn.addEventListener(evt, tryPlay, { once: true });
+      });
+    })();
+  </script>
+
+</body>
+</html>
