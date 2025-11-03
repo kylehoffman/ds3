@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Lake Norman in the Future Summer</title>
+  <title>Lake Norman in the Future (Summer)</title>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="https://unpkg.com/aframe-event-set-component@5.0.0/dist/aframe-event-set-component.min.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,32 +9,91 @@
 <body>
 
 <a-scene>
-  <!-- 360° Video Background -->
+  <!-- 360° video background -->
   <a-assets>
     <video id="vrVideo" autoplay loop muted playsinline crossorigin="anonymous">
       <source src="summer_future_2.mp4" type="video/mp4">
     </video>
   </a-assets>
+
   <a-videosphere src="#vrVideo"></a-videosphere>
 
-  <!-- Camera + Cursor -->
+  <!-- Camera + gaze cursor -->
   <a-entity camera look-controls position="0 1.6 0">
     <a-cursor fuse="true" fuse-timeout="2000" color="yellow" raycaster="objects: .gazeButton"></a-cursor>
   </a-entity>
 
-  <!-- HUD-style buttons (always in front of camera) -->
+  <!-- 🚗 Flying Car #1 -->
+  <a-entity id="car1"
+            position="-4 3 -3"
+            rotation="0 15 0"
+            animation__fly="property: position;
+                            from: -4 3 -3;
+                            to: 4 3 -2;
+                            dur: 8000;
+                            easing: easeInOutSine;
+                            loop: true;
+                            delay: 2000;">
+    <a-box depth="0.8" height="0.3" width="0.5" color="red" material="emissive: red; emissiveIntensity: 0.5"></a-box>
+    <a-box depth="0.9" height="0.2" width="0.55" position="0 0.25 0" color="silver"></a-box>
+    <a-sphere radius="0.1" color="black" position="0.25 -0.2 0.3"></a-sphere>
+    <a-sphere radius="0.1" color="black" position="-0.25 -0.2 0.3"></a-sphere>
+    <a-sphere radius="0.1" color="black" position="0.25 -0.2 -0.3"></a-sphere>
+    <a-sphere radius="0.1" color="black" position="-0.25 -0.2 -0.3"></a-sphere>
+  </a-entity>
+
+  <!-- 🚘 Flying Car #2 -->
+  <a-entity id="car2"
+            position="4 3.5 -3.5"
+            rotation="0 -30 0"
+            animation__fly="property: position;
+                            from: 4 3.5 -3.5;
+                            to: -4 3.3 -2.5;
+                            dur: 9000;
+                            easing: easeInOutSine;
+                            loop: true;
+                            delay: 3000;">
+    <a-box depth="0.8" height="0.3" width="0.5" color="blue" material="emissive: blue; emissiveIntensity: 0.5"></a-box>
+    <a-box depth="0.9" height="0.2" width="0.55" position="0 0.25 0" color="gray"></a-box>
+    <a-sphere radius="0.1" color="black" position="0.25 -0.2 0.3"></a-sphere>
+    <a-sphere radius="0.1" color="black" position="-0.25 -0.2 0.3"></a-sphere>
+    <a-sphere radius="0.1" color="black" position="0.25 -0.2 -0.3"></a-sphere>
+    <a-sphere radius="0.1" color="black" position="-0.25 -0.2 -0.3"></a-sphere>
+  </a-entity>
+
+  <!-- 🚕 Flying Car #3 -->
+  <a-entity id="car3"
+            position="-3 2.8 -2.8"
+            rotation="0 0 0"
+            animation__fly="property: position;
+                            from: -3 2.8 -2.8;
+                            to: 3 2.8 -2;
+                            dur: 7000;
+                            easing: easeInOutSine;
+                            loop: true;
+                            delay: 1500;">
+    <a-box depth="0.8" height="0.3" width="0.5" color="yellow" material="emissive: yellow; emissiveIntensity: 0.5"></a-box>
+    <a-box depth="0.9" height="0.2" width="0.55" position="0 0.25 0" color="white"></a-box>
+    <a-sphere radius="0.1" color="black" position="0.25 -0.2 0.3"></a-sphere>
+    <a-sphere radius="0.1" color="black" position="-0.25 -0.2 0.3"></a-sphere>
+    <a-sphere radius="0.1" color="black" position="0.25 -0.2 -0.3"></a-sphere>
+    <a-sphere radius="0.1" color="black" position="-0.25 -0.2 -0.3"></a-sphere>
+  </a-entity>
+
+  <!-- HUD-style navigation buttons -->
   <a-entity id="hudButtons" position="0 0 -2">
     <!-- Past -->
     <a-plane class="gazeButton"
              id="btnPast"
              color="#333"
              width="0.6" height="0.3"
-             position="-1 -0.6 0"
-             event-set__enter="_event: mouseenter; color: #FFD700; opacity: 1"
-             event-set__leave="_event: mouseleave; color: #333; opacity: 0.8">
+             position="-1.2 -0.6 0"
+             opacity="0.8"
+             event-set__enter="_event: mouseenter; color: #FFD700; scale: 1.1 1.1 1"
+             event-set__leave="_event: mouseleave; color: #333; scale: 1 1 1">
     </a-plane>
     <a-text value="Past"
-            position="-1 -0.6 0.02"
+            position="-1.2 -0.6 0.02"
             align="center"
             color="white"
             width="2"
@@ -47,8 +106,9 @@
              color="#333"
              width="0.6" height="0.3"
              position="0 -0.6 0"
-             event-set__enter="_event: mouseenter; color: #FFD700; opacity: 1"
-             event-set__leave="_event: mouseleave; color: #333; opacity: 0.8">
+             opacity="0.8"
+             event-set__enter="_event: mouseenter; color: #FFD700; scale: 1.1 1.1 1"
+             event-set__leave="_event: mouseleave; color: #333; scale: 1 1 1">
     </a-plane>
     <a-text value="Present"
             position="0 -0.6 0.02"
@@ -63,12 +123,31 @@
              id="btnFuture"
              color="#333"
              width="0.6" height="0.3"
-             position="1 -0.6 0"
-             event-set__enter="_event: mouseenter; color: #FFD700; opacity: 1"
-             event-set__leave="_event: mouseleave; color: #333; opacity: 0.8">
+             position="1.2 -0.6 0"
+             opacity="0.8"
+             event-set__enter="_event: mouseenter; color: #FFD700; scale: 1.1 1.1 1"
+             event-set__leave="_event: mouseleave; color: #333; scale: 1 1 1">
     </a-plane>
     <a-text value="Future"
-            position="1 -0.6 0.02"
+            position="1.2 -0.6 0.02"
+            align="center"
+            color="white"
+            width="2"
+            font="https://cdn.aframe.io/fonts/DejaVu-sdf.fnt">
+    </a-text>
+
+    <!-- Home -->
+    <a-plane class="gazeButton"
+             id="btnHome"
+             color="#333"
+             width="0.6" height="0.3"
+             position="0 -1.1 0"
+             opacity="0.8"
+             event-set__enter="_event: mouseenter; color: #FFD700; scale: 1.1 1.1 1"
+             event-set__leave="_event: mouseleave; color: #333; scale: 1 1 1">
+    </a-plane>
+    <a-text value="Home"
+            position="0 -1.1 0.02"
             align="center"
             color="white"
             width="2"
@@ -79,17 +158,19 @@
 </a-scene>
 
 <script>
-  // Video plays immediately (muted)
+  // Play video immediately
   const videoEl = document.getElementById('vrVideo');
-  videoEl.play().catch(() => {}); // silently ignore errors
+  videoEl.play().catch(() => console.warn('Autoplay blocked.'));
 
-  // Gaze navigation (fires after 2s fuse)
+  // Navigation links
   const buttons = {
     btnPast: 'summer_past.html',
     btnPresent: 'summer_present.html',
-    btnFuture: 'summer_future.html'
+    btnFuture: 'summer_future.html',
+    btnHome: 'index.html'
   };
 
+  // Add event listeners for button clicks
   document.querySelectorAll('.gazeButton').forEach(btn => {
     btn.addEventListener('click', () => {
       const target = buttons[btn.id];

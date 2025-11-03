@@ -1,105 +1,162 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Lake Norman in the Past Summer</title>
+  <title>Lake Norman in the Past (Summer)</title>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="https://unpkg.com/aframe-event-set-component@5.0.0/dist/aframe-event-set-component.min.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
 
-<a-scene>
-  <!-- 360° Video Background -->
-  <a-assets>
-    <video id="vrVideo" autoplay loop muted playsinline crossorigin="anonymous">
-      <source src="summer_past_2.mp4" type="video/mp4">
-    </video>
-  </a-assets>
-  <a-videosphere src="#vrVideo"></a-videosphere>
+  <a-scene>
+    <!-- 360° video background -->
+    <a-assets>
+      <video id="vrVideo" autoplay loop muted playsinline crossorigin="anonymous">
+        <source src="summer_past_2.mp4" type="video/mp4">
+      </video>
+    </a-assets>
 
-  <!-- Camera + Cursor -->
-  <a-entity camera look-controls position="0 1.6 0">
-    <a-cursor fuse="true" fuse-timeout="2000" color="yellow" raycaster="objects: .gazeButton"></a-cursor>
-  </a-entity>
+    <a-videosphere src="#vrVideo"></a-videosphere>
 
-  <!-- HUD-style Navigation Buttons -->
-  <a-entity id="hudButtons" position="0 0 -2">
-    <!-- Past -->
-    <a-plane class="gazeButton"
-             id="btnPast"
-             color="#333"
-             width="0.6" height="0.3"
-             position="-1 -0.6 0"
-             event-set__enter="_event: mouseenter; color: #FFD700; opacity: 1"
-             event-set__leave="_event: mouseleave; color: #333; opacity: 0.8">
-    </a-plane>
-    <a-text value="Past"
-            position="-1 -0.6 0.02"
-            align="center"
-            color="white"
-            width="2"
-            font="https://cdn.aframe.io/fonts/DejaVu-sdf.fnt">
-    </a-text>
+    <!-- Camera + gaze cursor -->
+    <a-entity camera look-controls position="0 1.6 0">
+      <a-cursor fuse="true" fuse-timeout="2000" color="yellow" raycaster="objects: .gazeButton"></a-cursor>
+    </a-entity>
 
-    <!-- Present -->
-    <a-plane class="gazeButton"
-             id="btnPresent"
-             color="#333"
-             width="0.6" height="0.3"
-             position="0 -0.6 0"
-             event-set__enter="_event: mouseenter; color: #FFD700; opacity: 1"
-             event-set__leave="_event: mouseleave; color: #333; opacity: 0.8">
-    </a-plane>
-    <a-text value="Present"
-            position="0 -0.6 0.02"
-            align="center"
-            color="white"
-            width="2"
-            font="https://cdn.aframe.io/fonts/DejaVu-sdf.fnt">
-    </a-text>
+    <!-- 🌠 Shooting Star -->
+    <a-entity id="shooting-star"
+              position="-5 4 -8"
+              animation__move="property: position;
+                               from: -5 4 -8;
+                               to: 5 2 -6;
+                               dur: 4000;
+                               easing: easeOutQuad;
+                               loop: true;
+                               delay: 3000;"
+              animation__fade="property: material.opacity;
+                               from: 1;
+                               to: 0;
+                               dur: 4000;
+                               easing: easeOutQuad;
+                               loop: true;
+                               delay: 3000;">
+      <a-sphere radius="0.05"
+                color="#ffffff"
+                material="emissive: #fff; emissiveIntensity: 2; opacity: 1;">
+      </a-sphere>
+      <a-cylinder height="1.2"
+                  radius="0.02"
+                  color="#ffffff"
+                  material="opacity: 0.3; emissive: #fff; emissiveIntensity: 1;"
+                  rotation="0 0 60"
+                  position="0 -0.4 0">
+      </a-cylinder>
+    </a-entity>
 
-    <!-- Future -->
-    <a-plane class="gazeButton"
-             id="btnFuture"
-             color="#333"
-             width="0.6" height="0.3"
-             position="1 -0.6 0"
-             event-set__enter="_event: mouseenter; color: #FFD700; opacity: 1"
-             event-set__leave="_event: mouseleave; color: #333; opacity: 0.8">
-    </a-plane>
-    <a-text value="Future"
-            position="1 -0.6 0.02"
-            align="center"
-            color="white"
-            width="2"
-            font="https://cdn.aframe.io/fonts/DejaVu-sdf.fnt">
-    </a-text>
-  </a-entity>
+    <!-- HUD Buttons (Past, Present, Future, Home) -->
+    <a-entity id="hudButtons" position="0 0 -2">
+      <!-- Past -->
+      <a-plane class="gazeButton"
+               id="btnPast"
+               color="#333"
+               width="0.6" height="0.3"
+               position="-1.2 -0.6 0"
+               opacity="0.8"
+               event-set__enter="_event: mouseenter; color: #FFD700; scale: 1.1 1.1 1"
+               event-set__leave="_event: mouseleave; color: #333; scale: 1 1 1">
+      </a-plane>
+      <a-text value="Past"
+              position="-1.2 -0.6 0.02"
+              align="center"
+              color="white"
+              width="2"
+              font="https://cdn.aframe.io/fonts/DejaVu-sdf.fnt">
+      </a-text>
 
-</a-scene>
+      <!-- Present -->
+      <a-plane class="gazeButton"
+               id="btnPresent"
+               color="#333"
+               width="0.6" height="0.3"
+               position="0 -0.6 0"
+               opacity="0.8"
+               event-set__enter="_event: mouseenter; color: #FFD700; scale: 1.1 1.1 1"
+               event-set__leave="_event: mouseleave; color: #333; scale: 1 1 1">
+      </a-plane>
+      <a-text value="Present"
+              position="0 -0.6 0.02"
+              align="center"
+              color="white"
+              width="2"
+              font="https://cdn.aframe.io/fonts/DejaVu-sdf.fnt">
+      </a-text>
 
-<script>
-  // Play video immediately (muted)
-  const videoEl = document.getElementById('vrVideo');
-  videoEl.play().catch(() => {}); // silently ignore errors
+      <!-- Future -->
+      <a-plane class="gazeButton"
+               id="btnFuture"
+               color="#333"
+               width="0.6" height="0.3"
+               position="1.2 -0.6 0"
+               opacity="0.8"
+               event-set__enter="_event: mouseenter; color: #FFD700; scale: 1.1 1.1 1"
+               event-set__leave="_event: mouseleave; color: #333; scale: 1 1 1">
+      </a-plane>
+      <a-text value="Future"
+              position="1.2 -0.6 0.02"
+              align="center"
+              color="white"
+              width="2"
+              font="https://cdn.aframe.io/fonts/DejaVu-sdf.fnt">
+      </a-text>
 
-  // Gaze navigation with 2-second fuse
-  const buttons = {
-    btnPast: 'summer_past.html',
-    btnPresent: 'summer_present.html',
-    btnFuture: 'summer_future.html'
-  };
+      <!-- Home -->
+      <a-plane class="gazeButton"
+               id="btnHome"
+               color="#333"
+               width="0.6" height="0.3"
+               position="0 -1.1 0"
+               opacity="0.8"
+               event-set__enter="_event: mouseenter; color: #FFD700; scale: 1.1 1.1 1"
+               event-set__leave="_event: mouseleave; color: #333; scale: 1 1 1">
+      </a-plane>
+      <a-text value="Home"
+              position="0 -1.1 0.02"
+              align="center"
+              color="white"
+              width="2"
+              font="https://cdn.aframe.io/fonts/DejaVu-sdf.fnt">
+      </a-text>
+    </a-entity>
 
-  document.querySelectorAll('.gazeButton').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const target = buttons[btn.id];
-      if (target) window.location.href = target;
+  </a-scene>
+
+  <script>
+    // Play video when ready
+    const videoEl = document.getElementById('vrVideo');
+    videoEl.play().catch(err => console.warn('Autoplay blocked:', err));
+
+    // Button navigation map
+    const buttons = {
+      btnPast: 'summer_past.html',
+      btnPresent: 'summer_present.html',
+      btnFuture: 'summer_future.html',
+      btnHome: 'index.html'
+    };
+
+    // Handle button clicks
+    document.querySelectorAll('.gazeButton').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = buttons[btn.id];
+        if (target) window.location.href = target;
+      });
     });
-  });
-</script>
+  </script>
 
 </body>
 </html>
+
+
+
 
 
 

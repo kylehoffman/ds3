@@ -74,6 +74,68 @@
             width="2"
             font="https://cdn.aframe.io/fonts/DejaVu-sdf.fnt">
     </a-text>
+
+    <!-- Home -->
+    <a-plane class="gazeButton"
+             id="btnHome"
+             color="#333"
+             width="0.6" height="0.3"
+             position="0 -1 0"
+             event-set__enter="_event: mouseenter; color: #FFD700; opacity: 1"
+             event-set__leave="_event: mouseleave; color: #333; opacity: 0.8">
+    </a-plane>
+    <a-text value="Home"
+            position="0 -1 0.02"
+            align="center"
+            color="white"
+            width="2"
+            font="https://cdn.aframe.io/fonts/DejaVu-sdf.fnt">
+    </a-text>
+  </a-entity>
+
+  <!-- Bee flight frame -->
+  <a-entity id="bee-frame"
+            position="0 1.6 -3"
+            animation__orbit="property: rotation;
+                              from: 0 0 0;
+                              to: 0 360 0;
+                              dur: 12000;
+                              loop: true;
+                              easing: linear">
+
+    <!-- 🐝 Bee -->
+    <a-entity id="bee"
+              position="0 0 -1"
+              rotation="0 0 0"
+              animation__wave="property: position;
+                                from: 0 0 -1;
+                                to: 0 0.3 -1.2;
+                                dir: alternate;
+                                dur: 600;
+                                easing: easeInOutSine;
+                                loop: true">
+
+      <!-- Body -->
+      <a-cylinder height="0.25" radius="0.07" color="yellow" rotation="0 0 90"></a-cylinder>
+      <!-- Stripes -->
+      <a-cylinder height="0.03" radius="0.071" position="0 0.05 0" color="black" rotation="0 0 90"></a-cylinder>
+      <a-cylinder height="0.03" radius="0.071" position="0 0 0" color="black" rotation="0 0 90"></a-cylinder>
+      <a-cylinder height="0.03" radius="0.071" position="0 -0.05 0" color="black" rotation="0 0 90"></a-cylinder>
+      <!-- Head -->
+      <a-sphere position="0.14 0 0" radius="0.06" color="black"></a-sphere>
+      <!-- Eyes -->
+      <a-sphere position="0.18 0.02 0.03" radius="0.015" color="white"></a-sphere>
+      <a-sphere position="0.18 -0.02 0.03" radius="0.015" color="white"></a-sphere>
+      <!-- Wings -->
+      <a-plane position="0 0.07 0" width="0.15" height="0.08" color="white" opacity="0.8"
+               rotation="0 0 15"
+               animation="property: rotation; to: 0 0 35; dir: alternate; dur: 100; loop: true"></a-plane>
+      <a-plane position="0 -0.07 0" width="0.15" height="0.08" color="white" opacity="0.8"
+               rotation="0 0 -15"
+               animation="property: rotation; to: 0 0 -35; dir: alternate; dur: 100; loop: true"></a-plane>
+      <!-- Stinger -->
+      <a-cone position="-0.14 0 0" height="0.06" radius-bottom="0.02" color="black" rotation="0 0 -90"></a-cone>
+    </a-entity>
   </a-entity>
 
 </a-scene>
@@ -87,7 +149,8 @@
   const buttons = {
     btnPast: 'summer_past.html',
     btnPresent: 'summer_present.html',
-    btnFuture: 'summer_future.html'
+    btnFuture: 'summer_future.html',
+    btnHome: 'index.html'
   };
 
   document.querySelectorAll('.gazeButton').forEach(btn => {
@@ -100,6 +163,9 @@
 
 </body>
 </html>
+
+
+
 
 
 
