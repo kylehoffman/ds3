@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Lake Norman in the Future Summer</title>
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="https://unpkg.com/aframe-event-set-component@5.0.0/dist/aframe-event-set-component.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<a-scene>
+  <!-- 360° Video Background -->
+  <a-assets>
+    <video id="vrVideo" autoplay loop muted playsinline crossorigin="anonymous">
+      <source src="summer_future_2.mp4" type="video/mp4">
+    </video>
+  </a-assets>
+  <a-videosphere src="#vrVideo"></a-videosphere>
+
+  <!-- Camera + Cursor -->
+  <a-entity camera look-controls position="0 1.6 0">
+    <a-cursor fuse="true" fuse-timeout="2000" color="yellow" raycaster="objects: .gazeButton"></a-cursor>
+  </a-entity>
+
+  <!-- HUD-style buttons (always in front of camera) -->
+  <a-entity id="hudButtons" position="0 0 -2">
+    <!-- Past -->
+    <a-plane class="gazeButton"
+             id="btnPast"
+             color="#333"
+             width="0.6" height="0.3"
+             position="-1 -0.6 0"
+             event-set__enter="_event: mouseenter; color: #FFD700; opacity: 1"
+             event-set__leave="_event: mouseleave; color: #333; opacity: 0.8">
+    </a-plane>
+    <a-text value="Past"
+            position="-1 -0.6 0.02"
+            align="center"
+            color="white"
+            width="2"
+            font="https://cdn.aframe.io/fonts/DejaVu-sdf.fnt">
+    </a-text>
+
+    <!-- Present -->
+    <a-plane class="gazeButton"
+             id="btnPresent"
+             color="#333"
+             width="0.6" height="0.3"
+             position="0 -0.6 0"
+             event-set__enter="_event: mouseenter; color: #FFD700; opacity: 1"
+             event-set__leave="_event: mouseleave; color: #333; opacity: 0.8">
+    </a-plane>
+    <a-text value="Present"
+            position="0 -0.6 0.02"
+            align="center"
+            color="white"
+            width="2"
+            font="https://cdn.aframe.io/fonts/DejaVu-sdf.fnt">
+    </a-text>
+
+    <!-- Future -->
+    <a-plane class="gazeButton"
+             id="btnFuture"
+             color="#333"
+             width="0.6" height="0.3"
+             position="1 -0.6 0"
+             event-set__enter="_event: mouseenter; color: #FFD700; opacity: 1"
+             event-set__leave="_event: mouseleave; color: #333; opacity: 0.8">
+    </a-plane>
+    <a-text value="Future"
+            position="1 -0.6 0.02"
+            align="center"
+            color="white"
+            width="2"
+            font="https://cdn.aframe.io/fonts/DejaVu-sdf.fnt">
+    </a-text>
+  </a-entity>
+
+</a-scene>
+
+<script>
+  // Video plays immediately (muted)
+  const videoEl = document.getElementById('vrVideo');
+  videoEl.play().catch(() => {}); // silently ignore errors
+
+  // Gaze navigation (fires after 2s fuse)
+  const buttons = {
+    btnPast: 'summer_past.html',
+    btnPresent: 'summer_present.html',
+    btnFuture: 'summer_future.html'
+  };
+
+  document.querySelectorAll('.gazeButton').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = buttons[btn.id];
+      if (target) window.location.href = target;
+    });
+  });
+</script>
+
+</body>
+</html>
+
+
+
+
