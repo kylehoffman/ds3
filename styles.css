@@ -1,0 +1,29 @@
+/* Page background (for loading screens or non-VR fallbacks) */
+html, body {
+    margin: 0;
+    padding: 0;
+    background: #eef5f3;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  }
+  
+  /* Optional HTML overlay bar you can reuse on any page */
+  .ui-bar {
+    position: fixed;
+    inset: 12px 12px auto 12px;
+    display: flex;
+    gap: 8px;
+    z-index: 5;
+  }
+  
+  .ui-btn {
+    appearance: none;
+    border: none;
+    background: #6fcfb6;
+    color: #0a2b22;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .ui-btn:hover { background: #53b49a; }
+  

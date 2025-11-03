@@ -1,22 +1,166 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>360° Panorama with A-Frame</title>
-    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Seasonal VR — Menu</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+
+  <script>
+    // Reusable: navigate to href when an entity is clicked.
+    AFRAME.registerComponent('link-on-click', {
+      schema: { href: {type: 'string'} },
+      init() {
+        this.el.addEventListener('click', () => {
+          const url = this.data.href;
+          if (url) window.location.href = url;
+        });
+      }
+    });
+
+    // Simple hover/press feedback for planes.
+    AFRAME.registerComponent('button-feedback', {
+      schema: { base: {default: '#6fcfb6'}, hover: {default: '#53b49a'}, down: {default: '#3b8a75'} },
+      init() {
+        const m = this.el.getAttribute('material') || {};
+        this.base = this.data.base;
+        this.hover = this.data.hover;
+        this.down = this.data.down;
+        this.el.setAttribute('material', {color: this.base, side: 'double'});
+        this._onEnter = () => this.el.setAttribute('material', 'color', this.hover);
+        this._onLeave = () => this.el.setAttribute('material', 'color', this.base);
+        this._onDown  = () => this.el.setAttribute('material', 'color', this.down);
+        this._onUp    = () => this.el.setAttribute('material', 'color', this.hover);
+        this.el.addEventListener('mouseenter', this._onEnter);
+        this.el.addEventListener('mouseleave', this._onLeave);
+        this.el.addEventListener('mousedown',  this._onDown);
+        this.el.addEventListener('mouseup',    this._onUp);
+        this.el.addEventListener('touchstart', this._onDown);
+        this.el.addEventListener('touchend',   this._onUp);
+      }
+    });
+  </script>
 </head>
 <body>
+  <a-scene>
 
-    <a-scene>
-        
-        <a-sky 
-            src="demo.JPG" 
-            rotation="0 -90 0">
-        </a-sky>
+    <!-- Background (replace with your default panorama if you want) -->
+    <a-sky src="spring.png" rotation="0 -90 0"></a-sky>
 
-        <a-entity camera look-controls position="0 1.6 0"></a-entity>
+    <!-- Camera + cursors: mouse for desktop, ring cursor for gaze, and lasers for VR controllers -->
+    <a-entity id="rig" position="0 1.6 0">
+      <a-entity
+        id="camera"
+        camera
+        look-controls
+        cursor="rayOrigin: mouse"
+        raycaster="objects: .clickable">
+      </a-entity>
 
-    </a-scene>
+      <!-- Optional center-gaze cursor (appears in VR) -->
+      <a-entity
+        cursor="fuse: false"
+        position="0 0 -1"
+        geometry="primitive: ring; radiusInner: 0.005; radiusOuter: 0.008"
+        material="color: white; shader: flat">
+      </a-entity>
+    </a-entity>
 
+    <!-- VR Controller lasers -->
+    <a-entity laser-controls="hand: left"  raycaster="objects: .clickable"></a-entity>
+    <a-entity laser-controls="hand: right" raycaster="objects: .clickable"></a-entity>
+
+    <!-- Flat menu panel in front of the user -->
+    <a-entity id="menu" position="0 1.6 -2" rotation="0 0 0">
+      <!-- Panel background -->
+      <a-plane width="2.6" height="1.6" color="#1f2937" opacity="0.85" radius="0.06"></a-plane>
+
+      <!-- Title -->
+      <a-entity
+        text="value: Choose a Season & Time; align: center; width: 2.2; color: #ffffff"
+        position="0 0.65 0">
+      </a-entity>
+
+      <!-- Four columns: Spring / Summer / Fall / Winter -->
+      <!-- Column helper positions -->
+      <a-entity id="spring-col" position="-0.9 0 0"></a-entity>
+      <a-entity id="summer-col" position="-0.3 0 0"></a-entity>
+      <a-entity id="fall-col"   position="0.3 0 0"></a-entity>
+      <a-entity id="winter-col" position="0.9 0 0"></a-entity>
+
+      <!-- Column labels -->
+      <a-entity text="value: Spring; align: center; width: 1.2; color: #ffffff" position="-0.9 0.35 0"></a-entity>
+      <a-entity text="value: Summer; align: center; width: 1.2; color: #ffffff" position="-0.3 0.35 0"></a-entity>
+      <a-entity text="value: Fall; align: center; width: 1.2; color: #ffffff"   position="0.3 0.35 0"></a-entity>
+      <a-entity text="value: Winter; align: center; width: 1.2; color: #ffffff" position="0.9 0.35 0"></a-entity>
+
+      <!-- Reusable button: a small plane with text; add class 'clickable' -->
+      <!-- SPRING -->
+      <a-plane class="clickable vr-button" position="-0.9 0.12 0" width="0.44" height="0.18"
+               button-feedback link-on-click="href: spring_past.html">
+        <a-entity text="value: Past; align: center; color: #0a2b22; width: 0.9" position="0 0 0.01"></a-entity>
+      </a-plane>
+
+      <a-plane class="clickable vr-button" position="-0.9 -0.10 0" width="0.44" height="0.18"
+               button-feedback link-on-click="href: spring_present.html">
+        <a-entity text="value: Present; align: center; color: #0a2b22; width: 0.9" position="0 0 0.01"></a-entity>
+      </a-plane>
+
+      <a-plane class="clickable vr-button" position="-0.9 -0.32 0" width="0.44" height="0.18"
+               button-feedback link-on-click="href: spring_future.html">
+        <a-entity text="value: Future; align: center; color: #0a2b22; width: 0.9" position="0 0 0.01"></a-entity>
+      </a-plane>
+
+      <!-- SUMMER -->
+      <a-plane class="clickable vr-button" position="-0.3 0.12 0" width="0.44" height="0.18"
+               button-feedback link-on-click="href: summer_past.html">
+        <a-entity text="value: Past; align: center; color: #0a2b22; width: 0.9" position="0 0 0.01"></a-entity>
+      </a-plane>
+
+      <a-plane class="clickable vr-button" position="-0.3 -0.10 0" width="0.44" height="0.18"
+               button-feedback link-on-click="href: summer_present.html">
+        <a-entity text="value: Present; align: center; color: #0a2b22; width: 0.9" position="0 0 0.01"></a-entity>
+      </a-plane>
+
+      <a-plane class="clickable vr-button" position="-0.3 -0.32 0" width="0.44" height="0.18"
+               button-feedback link-on-click="href: summer_future.html">
+        <a-entity text="value: Future; align: center; color: #0a2b22; width: 0.9" position="0 0 0.01"></a-entity>
+      </a-plane>
+
+      <!-- FALL -->
+      <a-plane class="clickable vr-button" position="0.3 0.12 0" width="0.44" height="0.18"
+               button-feedback link-on-click="href: fall_past.html">
+        <a-entity text="value: Past; align: center; color: #0a2b22; width: 0.9" position="0 0 0.01"></a-entity>
+      </a-plane>
+
+      <a-plane class="clickable vr-button" position="0.3 -0.10 0" width="0.44" height="0.18"
+               button-feedback link-on-click="href: fall_present.html">
+        <a-entity text="value: Present; align: center; color: #0a2b22; width: 0.9" position="0 0 0.01"></a-entity>
+      </a-plane>
+
+      <a-plane class="clickable vr-button" position="0.3 -0.32 0" width="0.44" height="0.18"
+               button-feedback link-on-click="href: fall_future.html">
+        <a-entity text="value: Future; align: center; color: #0a2b22; width: 0.9" position="0 0 0.01"></a-entity>
+      </a-plane>
+
+      <!-- WINTER -->
+      <a-plane class="clickable vr-button" position="0.9 0.12 0" width="0.44" height="0.18"
+               button-feedback link-on-click="href: winter_past.html">
+        <a-entity text="value: Past; align: center; color: #0a2b22; width: 0.9" position="0 0 0.01"></a-entity>
+      </a-plane>
+
+      <a-plane class="clickable vr-button" position="0.9 -0.10 0" width="0.44" height="0.18"
+               button-feedback link-on-click="href: winter_present.html">
+        <a-entity text="value: Present; align: center; color: #0a2b22; width: 0.9" position="0 0 0.01"></a-entity>
+      </a-plane>
+
+      <a-plane class="clickable vr-button" position="0.9 -0.32 0" width="0.44" height="0.18"
+               button-feedback link-on-click="href: winter_future.html">
+        <a-entity text="value: Future; align: center; color: #0a2b22; width: 0.9" position="0 0 0.01"></a-entity>
+      </a-plane>
+    </a-entity>
+
+  </a-scene>
 </body>
 </html>
