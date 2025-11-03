@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Backseat Car VR — Time Travel Selector (Layered)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <style>
+      body { margin: 0; }
+      .hint {
+        position: absolute; left: 50%; transform: translateX(-50%);
+        bottom: 16px; padding: 8px 14px; border-radius: 10px;
+        background: rgba(0,0,0,.55); color: #fff; font: 14px/1.2 system-ui, sans-serif;
+        z-index: 10; user-select: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="hint">Gaze at an option for 3s to select • Click the VR goggles to enter VR</div>
+
+    <a-scene renderer="antialias: true">
+      <!-- PRELOADS -->
+      <a-assets>
+        <!-- Sky -->
+        <img id="skyTex" crossorigin="anonymous" src="sky.jpeg">
+        <!-- Rounded rectangle for buttons -->
+        <img id="btnBg" crossorigin="anonymous"
+             src='data:image/svg+xml;utf8,
+             <svg xmlns="http://www.w3.org/2000/svg" width="500" height="140" viewBox="0 0 500 140">
+               <rect x="0" y="0" width="500" height="140" rx="24" ry="24" fill="%23FFFFFF"/>
+             </svg>'>
+      </a-assets>
+
+      <!-- LIGHTS -->
+      <a-entity light="type: ambient; intensity: 0.45"></a-entity>
+      <a-entity light="type: directional; intensity: 0.75" position="-1 2 1"></a-entity>
+
+      <!-- CAMERA RIG + CURSOR -->
+      <a-entity id="rig" camera-bob>
+        <a-entity id="cam"
+                  camera
+                  look-controls
+                  position="0 1.25 0"
+                  cursor="fuse: true; fuseTimeout: 3000; rayOrigin: entity"
+                  raycaster="objects: .clickable">
+          <!-- Reticle always on top -->
+          <a-entity id="reticle"
+                    position="0 0 -1"
+                    geometry="primitive: ring; radiusInner: 0.01; radiusOuter: 0.015; segmentsTheta: 64"
+                    material="shader: flat; color: #FFFFFF; opacity: 0.95; transparent: true; depthTest: false; depthWrite: false"
+                    always-on-top>
+          </a-entity>
+
+          <!-- Centered “Traveling...” text + black fade plane (head-locked, hidden initially) -->
+          <a-entity id="travelOverlay" position="0 0 -0.4" visible="false">
+            <a-entity id="travelText"
+                      text="value: Traveling...; color: #FFFFFF; align: center; width: 3"
+                      position="0 0 0.02"
+                      material="shader: flat; transparent: true; opacity: 0"></a-entity>
+            <a-plane id="fadePlane"
+                     position="0 0 0"
+                     width="2.4" height="2.4"
+                     material="color: #000; shader: flat; transparent: true; opacity: 0; depthTest: false; depthWrite: false"></a-plane>
+          </a-entity>
+        </a-entity>
+
+        <!-- SIMPLE CAR INTERIOR (child of rig) -->
+        <a-entity id="car" position="0 1 0">
+          <a-box position="0 -0.25 0" depth="3.4" width="1.7" height="0.04" color="#303030"></a-box>
+          <a-box position="0 0.95 0" depth="3.4" width="1.7" height="0.04" color="#1e1e1e"></a-box>
+          <a-box position="-0.86 0.35 0" depth="3.4" width="0.02" height="0.7" color="#2a2a2a"></a-box>
+          <a-plane position="-0.82 0.55 0" rotation="0 90 0" width="0.9" height="0.55" color="#a8d8ff" opacity="0.18"></a-plane>
+          <a-box position="0.86 0.35 0" depth="3.4" width="0.02" height="0.7" color="#2a2a2a"></a-box>
+          <a-plane position="0.82 0.55 0" rotation="0 -90 0" width="0.9" height="0.55" color="#a8d8ff" opacity="0.18"></a-plane>
+          <a-box position="-0.35 0.55 -0.9" depth="0.12" width="0.5" height="0.9" color="#2c2c2c" roughness="0.8"></a-box>
+          <a-box position="0.35 0.55 -0.9"  depth="0.12" width="0.5" height="0.9" color="#2c2c2c" roughness="0.8"></a-box>
+          <a-box position="-0.35 0.95 -0.82" depth="0.1" width="0.35" height="0.18" color="#202020"></a-box>
+          <a-box position="0.35 0.95 -0.82"  depth="0.1" width="0.35" height="0.18" color="#202020"></a-box>
+          <a-box position="0 0.45 0.8" depth="0.08" width="1.5" height="0.9" color="#2b2b2b"></a-box>
+          <a-plane position="0 0.8 1.4" rotation="-20 0 0" width="1.3" height="0.6" color="#a8d8ff" opacity="0.18"></a-plane>
+          <a-plane position="0 0.9 -1.7" rotation="20 180 0" width="1.3" height="0.6" color="#a8d8ff" opacity="0.14"></a-plane>
+
+          <!-- >>> CHAT PANEL <<< -->
+          <a-entity id="chatRoot"
+                    position="0 0.50 -1.25"
+                    rotation="0 0 0"
+                    choice-flow
+                    front-layer="order: 9000">
+            <!-- Panel background -->
+            <a-plane width="1.8" height="0.7"  <!-- increased height a bit --> <!-- <-- changed -->
+                     material="color: #0E1117; opacity: 0.85; shader: flat; transparent: true; depthTest: false; depthWrite: false"
+                     position="0 0 0.0001"></a-plane>
+
+            <!-- Chat prompt text (default top-ish) -->
+            <a-entity id="chatPrompt"
+                      position="0 0.22 0.02"  <!-- default a bit higher --> <!-- <-- changed -->
+                      text="value: What time period would you like to travel to?; color: #FFFFFF; align: center; width: 2.4">
+            </a-entity>
+
+            <!-- OPTIONS (script moves these per-step) -->
+            <a-entity id="optionsRow1" position="0 -0.02 0.02"></a-entity> <!-- <-- changed -->
+            <a-entity id="optionsRow2" position="0 -0.20 0.02"></a-entity> <!-- <-- changed -->
+          </a-entity>
+          <!-- >>> END CHAT PANEL <<< -->
+        </a-entity>
+      </a-entity>
+
+      <!-- WORLD (road) -->
+      <a-entity id="world" road-loop="segments: 6; length: 45; speed: 8; roadWidth: 4.2;"></a-entity>
+
+      <!-- SKY -->
+      <a-sky id="sky" src="#skyTex" color="#cfe8ff" rotation="0 0 0"></a-sky>
+
+      <!-- OPTIONAL: world-anchored car UI (speed/bounce/recenter) -->
+      <a-entity id="uiPanelRoot" position="0.0 1.05 -1.2" rotation="0 0 0" front-layer="order: 8800">
+        <a-entity class="clickable ui-btn"
+                  ui-button-action="action: speedUp; label: Speed Up"
+                  geometry="primitive: plane; width: 0.28; height: 0.08"
+                  material="transparent: true; opacity: 0; shader: flat"
+                  position="0 0.12 0.001">
+          <a-image class="bg" src="#btnBg" width="0.28" height="0.08"
+                   material="shader: flat; color: #2C3E50; opacity: 0.75; transparent: true; depthTest: false; depthWrite: false"
+                   position="0 0 0.0005"></a-image>
+          <a-entity text="value: Speed Up; color: #FFFFFF; align: center; width: 1.6"
+                    position="0 0 0.0015"></a-entity>
+          <a-entity class="progress"
+                    geometry="primitive: ring; radiusInner: 0.001; radiusOuter: 0.011; segmentsTheta: 64"
+                    material="color: #FFFFFF; opacity: 0.95; shader: flat; depthTest: false; depthWrite: false"
+                    position="0 0 0.002" scale="0 0 0"></a-entity>
+        </a-entity>
+
+        <a-entity class="clickable ui-btn"
+                  ui-button-action="action: slowDown; label: Slow Down"
+                  geometry="primitive: plane; width: 0.28; height: 0.08"
+                  material="transparent: true; opacity: 0; shader: flat"
+                  position="0 0.01 0.001">
+          <a-image class="bg" src="#btnBg" width="0.28" height="0.08"
+                   material="shader: flat; color: #2C3E50; opacity: 0.75; transparent: true; depthTest: false; depthWrite: false"
+                   position="0 0 0.0005"></a-image>
+          <a-entity text="value: Slow Down; color: #FFFFFF; align: center; width: 1.6"
+                    position="0 0 0.0015"></a-entity>
+          <a-entity class="progress"
+                    geometry="primitive: ring; radiusInner: 0.001; radiusOuter: 0.011; segmentsTheta: 64"
+                    material="color: #FFFFFF; opacity: 0.95; shader: flat; depthTest: false; depthWrite: false"
+                    position="0 0 0.002" scale="0 0 0"></a-entity>
+        </a-entity>
+
+        <a-entity class="clickable ui-btn"
+                  ui-button-action="action: toggleBob; label: Toggle Bounce"
+                  geometry="primitive: plane; width: 0.28; height: 0.08"
+                  material="transparent: true; opacity: 0; shader: flat"
+                  position="0 -0.10 0.001">
+          <a-image class="bg" src="#btnBg" width="0.28" height="0.08"
+                   material="shader: flat; color: #2C3E50; opacity: 0.75; transparent: true; depthTest: false; depthWrite: false"
+                   position="0 0 0.0005"></a-image>
+          <a-entity text="value: Toggle Bounce; color: #FFFFFF; align: center; width: 1.6"
+                    position="0 0 0.0015"></a-entity>
+          <a-entity class="progress"
+                    geometry="primitive: ring; radiusInner: 0.001; radiusOuter: 0.011; segmentsTheta: 64"
+                    material="color: #FFFFFF; opacity: 0.95; shader: flat; depthTest: false; depthWrite: false"
+                    position="0 0 0.002" scale="0 0 0"></a-entity>
+        </a-entity>
+
+        <a-entity class="clickable ui-btn"
+                  ui-button-action="action: recenter; label: Recenter View"
+                  geometry="primitive: plane; width: 0.28; height: 0.08"
+                  material="transparent: true; opacity: 0; shader: flat"
+                  position="0 -0.21 0.001">
+          <a-image class="bg" src="#btnBg" width="0.28" height="0.08"
+                   material="shader: flat; color: #2C3E50; opacity: 0.75; transparent: true; depthTest: false; depthWrite: false"
+                   position="0 0 0.0005"></a-image>
+          <a-entity text="value: Recenter View; color: #FFFFFF; align: center; width: 1.6"
+                    position="0 0 0.0015"></a-entity>
+          <a-entity class="progress"
+                    geometry="primitive: ring; radiusInner: 0.001; radiusOuter: 0.011; segmentsTheta: 64"
+                    material="color: #FFFFFF; opacity: 0.95; shader: flat; depthTest: false; depthWrite: false"
+                    position="0 0 0.002" scale="0 0 0"></a-entity>
+        </a-entity>
+      </a-entity>
+
+      <!-- COMPONENTS / LOGIC -->
+      <script>
+        /* --- Layers: on-top helpers --- */
+        AFRAME.registerComponent('always-on-top', {
+          init: function () {
+            const apply = (obj) => {
+              if (!obj) return;
+              if (obj.material) {
+                obj.material.depthTest = false;
+                obj.material.depthWrite = false;
+                obj.renderOrder = 9999; // highest
+              }
+              if (obj.children) obj.children.forEach(apply);
+            };
+            const mesh = this.el.getObject3D('mesh');
+            if (mesh) apply(mesh);
+            this.el.addEventListener('object3dset', (e) => {
+              if (e.detail.type === 'mesh') apply(this.el.getObject3D('mesh'));
+            });
+          }
+        });
+
+        // Front layer for UI (below reticle, above car)
+        AFRAME.registerComponent('front-layer', {
+          schema: { order: { default: 9000 } },
+          init: function () {
+            const order = this.data.order;
+            const apply = (obj) => {
+              if (!obj) return;
+              if (obj.material) {
+                obj.material.depthTest = false;
+                obj.material.depthWrite = false;
+                obj.renderOrder = order;
+              }
+              if (obj.children) obj.children.forEach(apply);
+            };
+            const setAll = () => {
+              const root = this.el.object3D;
+              if (root) root.traverse(apply);
+            };
+            setAll();
+            // Re-apply when meshes appear later
+            this.el.addEventListener('object3dset', setAll);
+          }
+        });
+
+        // Subtle camera bob / rock
+        AFRAME.registerComponent('camera-bob', {
+          schema: {
+            ampY:{default:0.02}, ampX:{default:0.01}, ampR:{default:0.3},
+            freqY:{default:1.6}, freqX:{default:0.9}, freqR:{default:0.7},
+            enabled:{default:true}
+          },
+          init(){ this.t=0; this.px=Math.random()*Math.PI*2; this.py=Math.random()*Math.PI*2; this.pr=Math.random()*Math.PI*2; },
+          tick(time,dt){
+            if(!dt || !this.data.enabled) return;
+            this.t += dt/1000;
+            const y = this.data.ampY*Math.sin(this.t*this.data.freqY + this.py);
+            const x = this.data.ampX*Math.sin(this.t*this.data.freqX + this.px);
+            this.el.object3D.position.set(x, 1.25 + y, 0);
+            const cam = document.getElementById('cam');
+            if (cam) cam.object3D.rotation.z = THREE.MathUtils.degToRad(this.data.ampR*Math.sin(this.t*this.data.freqR + this.pr));
+          }
+        });
+
+        // Build a single road segment (with scenery)
+        function makeSegment(opts) {
+          const { z, length, roadWidth } = opts;
+          const seg = document.createElement('a-entity');
+          seg.setAttribute('class', 'road-segment');
+          seg.setAttribute('position', `0 0 ${z}`);
+
+          const ground = document.createElement('a-box');
+          ground.setAttribute('position', `0 -0.01 0`);
+          ground.setAttribute('width', 600);
+          ground.setAttribute('height', 0.002);
+          ground.setAttribute('depth', length);
+          ground.setAttribute('color', '#74c365');
+          ground.setAttribute('roughness', '1');
+          seg.appendChild(ground);
+
+          const road = document.createElement('a-box');
+          road.setAttribute('position', `0 0 0`);
+          road.setAttribute('width', roadWidth);
+          road.setAttribute('height', 0.02);
+          road.setAttribute('depth', length);
+          road.setAttribute('color', '#3a3a3a');
+          road.setAttribute('roughness', '0.9');
+          seg.appendChild(road);
+
+          const dashCount = Math.floor(length / 3);
+          for (let i = 0; i < dashCount; i++) {
+            const dash = document.createElement('a-box');
+            const dz = -length/2 + (i * (length / dashCount));
+            dash.setAttribute('position', `0 0.02 ${dz}`);
+            dash.setAttribute('width', 0.15);
+            dash.setAttribute('height', 0.01);
+            dash.setAttribute('depth', 0.9);
+            dash.setAttribute('color', '#fefefe');
+            seg.appendChild(dash);
+          }
+
+          const grassL = document.createElement('a-box');
+          grassL.setAttribute('position', `${-(roadWidth/2 + 1.5)} -0.005 0`);
+          grassL.setAttribute('width', 3.5);
+          grassL.setAttribute('height', 0.01);
+          grassL.setAttribute('depth', length);
+          grassL.setAttribute('color', '#6ab04c');
+          seg.appendChild(grassL);
+
+          const grassR = document.createElement('a-box');
+          grassR.setAttribute('position', `${(roadWidth/2 + 1.5)} -0.005 0`);
+          grassR.setAttribute('width', 3.5);
+          grassR.setAttribute('height', 0.01);
+          grassR.setAttribute('depth', length);
+          grassR.setAttribute('color', '#6ab04c');
+          seg.appendChild(grassR);
+
+          // Trees
+          const makeTree = (x, zLocal) => {
+            const trunk = document.createElement('a-cylinder');
+            trunk.setAttribute('position', `${x} 0.6 ${zLocal}`);
+            trunk.setAttribute('radius', 0.07);
+            trunk.setAttribute('height', 0.9);
+            trunk.setAttribute('color', '#6d4c41');
+            const crown = document.createElement('a-cone');
+            crown.setAttribute('position', `${x} 1.2 ${zLocal}`);
+            crown.setAttribute('radius-bottom', 0.55);
+            crown.setAttribute('radius-top', 0.02);
+            crown.setAttribute('height', 1.1);
+            crown.setAttribute('color', '#2ecc71');
+            seg.appendChild(trunk); seg.appendChild(crown);
+          };
+          const treePairs = 6;
+          for (let i = 0; i < treePairs; i++) {
+            const frac = Math.random() * 0.9 + 0.05;
+            const zLocal = -length/2 + frac * length;
+            makeTree(-(roadWidth/2 + 1.0 + Math.random()*0.7), zLocal);
+            makeTree( (roadWidth/2 + 1.0 + Math.random()*0.7), zLocal);
+          }
+
+          // Buildings
+          const makeBuilding = (x, zLocal) => {
+            const b = document.createElement('a-box');
+            const h = 1.6 + Math.random()*2.2;
+            b.setAttribute('position', `${x} ${h/2} ${zLocal}`);
+            b.setAttribute('width', 1.2 + Math.random()*1.6);
+            b.setAttribute('height', h);
+            b.setAttribute('depth', 1.2 + Math.random()*2.0);
+            b.setAttribute('color', ['#95a5a6','#bdc3c7','#7f8c8d','#9aaeb1'][Math.floor(Math.random()*4)]);
+            b.setAttribute('roughness', '0.7');
+            seg.appendChild(b);
+          };
+          const far = roadWidth/2 + 6.0;
+          const bCount = 4;
+          for (let i = 0; i < bCount; i++) {
+            const frac = (i+0.5)/bCount;
+            const zLocal = -length/2 + frac * length + (Math.random()*4 - 2);
+            makeBuilding(-far - Math.random()*3, zLocal);
+            makeBuilding( far + Math.random()*3, zLocal);
+          }
+          return seg;
+        }
+
+        // Road loop
+        AFRAME.registerComponent('road-loop', {
+          schema: { segments:{default:6}, length:{default:45}, speed:{default:8}, roadWidth:{default:4.2} },
+          init: function () {
+            this.segs = [];
+            const n = this.data.segments, L = this.data.length;
+            for (let i = 0; i < n; i++) {
+              const z = -i * L; // 0, -L, -2L, ...
+              const seg = makeSegment({ z, length: L, roadWidth: this.data.roadWidth });
+              this.el.appendChild(seg); this.segs.push(seg);
+            }
+          },
+          tick: function (time, dt) {
+            if (!dt) return;
+            const n=this.data.segments, L=this.data.length, sp=this.data.speed, dz=(dt/1000)*sp;
+            for (let i=0;i<n;i++){
+              const obj=this.segs[i].object3D;
+              obj.position.z += dz;
+              if (obj.position.z > L*0.5) obj.position.z -= n*L;
+            }
+          }
+        });
+
+        /* ---------- Car UI (speed/bounce/recenter) ---------- */
+        AFRAME.registerComponent('ui-button-action', {
+          schema: { action:{type:'string'}, label:{type:'string', default:''} },
+          init: function () {
+            const el=this.el;
+            const baseTint='#2C3E50', hoverTint='#4AA3FF';
+            const bg=el.querySelector('.bg'), progress=el.querySelector('.progress');
+            const world=document.getElementById('world'); const rig=document.getElementById('rig');
+
+            function getSpeed(){ const d=world.getAttribute('road-loop'); return d?.speed ?? 8; }
+            function setSpeed(s){ world.setAttribute('road-loop','speed', Math.max(0, Math.min(40, s))); }
+
+            el.addEventListener('mouseenter', ()=>{ if(bg) bg.setAttribute('material','color',hoverTint); el.object3D.scale.set(1.05,1.05,1); });
+            el.addEventListener('mouseleave', ()=>{ if(bg) bg.setAttribute('material','color',baseTint); el.object3D.scale.set(1,1,1); if(progress){progress.removeAttribute('animation__grow'); progress.setAttribute('scale','0 0 0');} });
+            el.addEventListener('fusing', ()=>{ if(!progress) return; progress.setAttribute('scale','0.001 0.001 0.001'); progress.setAttribute('animation__grow',{property:'scale',to:'1 1 1',dur:3000,easing:'linear'}); });
+            el.addEventListener('click', ()=>{
+              switch(this.data.action){
+                case 'speedUp': setSpeed(getSpeed()+2); break;
+                case 'slowDown': setSpeed(getSpeed()-2); break;
+                case 'toggleBob': {
+                  const d = rig.getAttribute('camera-bob')||{}; const en = (d.enabled !== false);
+                  rig.setAttribute('camera-bob','enabled', !en); break;
+                }
+                case 'recenter': {
+                  const cam=document.getElementById('cam'); if(!cam) return;
+                  const lc=cam.components['look-controls']; if(!lc) return;
+                  lc.yawObject.rotation.set(0,0,0); lc.pitchObject.rotation.set(0,0,0); break;
+                }
+              }
+            });
+          }
+        });
+
+        /* ---------- Choice buttons (chat panel) ---------- */
+        function createOption(label, key, val, x, y) {
+          const root = document.createElement('a-entity');
+          root.setAttribute('class','clickable choice-btn');
+          root.setAttribute('ui-choice', `key: ${key}; value: ${val}; label: ${label}`);
+          root.setAttribute('geometry','primitive: plane; width: 0.5; height: 0.12');
+          root.setAttribute('material','transparent: true; opacity: 0; shader: flat');
+          root.setAttribute('position', `${x} ${y} 0.001`);
+
+          const bg = document.createElement('a-image');
+          bg.setAttribute('class','bg');
+          bg.setAttribute('src','#btnBg');
+          bg.setAttribute('width','0.5');
+          bg.setAttribute('height','0.12');
+          bg.setAttribute('position','0 0 0.0005');
+          // ensure front layer props on materials
+          bg.setAttribute('material','shader: flat; color: #2C3E50; opacity: 0.85; transparent: true; depthTest: false; depthWrite: false');
+          root.appendChild(bg);
+
+          const labelEnt = document.createElement('a-entity');
+          labelEnt.setAttribute('text', `value: ${label}; color: #FFFFFF; align: center; baseline: center; width: 2`);
+          labelEnt.setAttribute('position','0 0 0.0015');
+          root.appendChild(labelEnt);
+
+          const ring = document.createElement('a-entity');
+          ring.setAttribute('class','progress');
+          ring.setAttribute('geometry','primitive: ring; radiusInner: 0.001; radiusOuter: 0.011; segmentsTheta: 64');
+          ring.setAttribute('material','color: #FFFFFF; opacity: 0.95; shader: flat; depthTest: false; depthWrite: false');
+          ring.setAttribute('position','0 0 0.002');
+          ring.setAttribute('scale','0 0 0');
+          root.appendChild(ring);
+
+          return root;
+        }
+
+        AFRAME.registerComponent('ui-choice', {
+          schema: { key:{type:'string'}, value:{type:'string'}, label:{type:'string'} },
+          init: function () {
+            const el=this.el, bg=el.querySelector('.bg'), progress=el.querySelector('.progress');
+            const base='#2C3E50', hover='#4AA3FF';
+            el.addEventListener('mouseenter', ()=>{ if(bg) bg.setAttribute('material','color',hover); el.object3D.scale.set(1.05,1.05,1); });
+            el.addEventListener('mouseleave', ()=>{ 
+              if(bg) bg.setAttribute('material','color',base);
+              el.object3D.scale.set(1,1,1);
+              if(progress){
+                progress.removeAttribute('animation__grow');
+                progress.setAttribute('scale','0 0 0');
+              }
+            });
+            el.addEventListener('fusing', ()=>{ 
+              if(!progress) return;
+              progress.setAttribute('scale','0.001 0.001 0.001');
+              progress.setAttribute('animation__grow',{
+                property:'scale', to:'1 1 1', dur:3000, easing:'linear'
+              });
+            });
+            el.addEventListener('click', ()=>{
+              /* ensure the selection event BUBBLES up to #chatRoot (choice-flow) */
+              const ev = new CustomEvent('choice-selected', {
+                detail: { key: this.data.key, value: this.data.value },
+                bubbles: true
+              });
+              el.dispatchEvent(ev);
+            });
+          }
+        });
+
+        // Manages the two-step selection flow
+        AFRAME.registerComponent('choice-flow', {
+          init: function () {
+            this.state = { time: null, season: null };
+            this.optionsRow1 = this.el.querySelector('#optionsRow1');
+            this.optionsRow2 = this.el.querySelector('#optionsRow2');
+            this.prompt = this.el.querySelector('#chatPrompt');
+
+            this.showTimeOptions();
+            this.el.addEventListener('choice-selected', (e)=> this.onChoice(e.detail));
+          },
+          layoutForTimeStep: function(){ // <-- changed (explicit layout)
+            this.prompt.setAttribute('position','0 0.22 0.02');
+            this.optionsRow1.setAttribute('position','0 -0.02 0.02');
+            this.optionsRow2.setAttribute('position','0 -0.20 0.02');
+          },
+          layoutForSeasonStep: function(){ // <-- changed (explicit layout)
+            // Prompt even higher; rows further down
+            this.prompt.setAttribute('position','0 0.26 0.02');
+            this.optionsRow1.setAttribute('position','0 -0.02 0.02');  // Fall / Winter
+            this.optionsRow2.setAttribute('position','0 -0.22 0.02');  // Spring / Summer
+          },
+          clearOptions: function(){
+            [this.optionsRow1, this.optionsRow2].forEach(row => {
+              while (row.firstChild) row.removeChild(row.firstChild);
+            });
+          },
+          showTimeOptions: function(){
+            this.clearOptions();
+            this.layoutForTimeStep(); // <-- changed
+            this.prompt.setAttribute('text','value','What time period would you like to travel to?');
+            const opts = [
+              {label:'Past', value:'past', x:-0.6, y:0},
+              {label:'Present', value:'present', x:0, y:0},
+              {label:'Future', value:'future', x:0.6, y:0},
+            ];
+            opts.forEach(o => this.optionsRow1.appendChild(createOption(o.label, 'time', o.value, o.x, o.y)));
+          },
+          showSeasonOptions: function(){
+            this.clearOptions();
+            this.layoutForSeasonStep(); // <-- changed
+            this.prompt.setAttribute('text','value','Okay! Now, what season would you like to see?');
+            const row1 = [
+              {label:'Fall', value:'fall', x:-0.55, y:0.10},
+              {label:'Winter', value:'winter', x:0.55, y:0.10},
+            ];
+            const row2 = [
+              {label:'Spring', value:'spring', x:-0.55, y:-0.10},
+              {label:'Summer', value:'summer', x:0.55, y:-0.10},
+            ];
+            row1.forEach(o => this.optionsRow1.appendChild(createOption(o.label, 'season', o.value, o.x, o.y)));
+            row2.forEach(o => this.optionsRow2.appendChild(createOption(o.label, 'season', o.value, o.x, o.y)));
+          },
+          onChoice: function({key, value}){
+            if (key === 'time') {
+              this.state.time = value;
+              this.showSeasonOptions();
+            } else if (key === 'season') {
+              this.state.season = value;
+              if (this.state.time) this.travel();
+            }
+          },
+          travel: function(){
+            const season = this.state.season.toLowerCase();
+            const time = this.state.time.toLowerCase();
+            const target = `${season}_${time}.html`;
+
+            // Hide the whole chat panel immediately so "Traveling..." stands alone
+            this.el.setAttribute('visible', false); // <-- changed
+
+            // Head-locked center overlay/fade
+            const overlay = document.getElementById('travelOverlay');
+            const text = document.getElementById('travelText');
+            const fade = document.getElementById('fadePlane');
+            overlay.setAttribute('visible', true);
+            text.setAttribute('material','opacity', 0);
+            fade.setAttribute('material','opacity', 0);
+
+            text.setAttribute('animation__in', {
+              property: 'material.opacity',
+              from: 0, to: 1, dur: 400, easing: 'easeOutQuad'
+            });
+            setTimeout(()=>{
+              fade.setAttribute('animation__fade', {
+                property: 'material.opacity',
+                from: 0, to: 1, dur: 700, easing: 'easeInOutQuad'
+              });
+              fade.addEventListener('animationcomplete__fade', () => {
+                window.location.href = target;
+              }, { once: true });
+            }, 450);
+          }
+        });
+
+        /* ---------- Car UI button behavior (unchanged) ---------- */
+        AFRAME.registerComponent('ui-button-action', { /* defined above */});
+      </script>
+    </a-scene>
+  </body>
+</html>
