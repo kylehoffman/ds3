@@ -29,6 +29,13 @@
              <svg xmlns="http://www.w3.org/2000/svg" width="500" height="140" viewBox="0 0 500 140">
                <rect x="0" y="0" width="500" height="140" rx="24" ry="24" fill="%23FFFFFF"/>
              </svg>'>
+        <!-- NEW: dark, translucent rounded-rect for the chat panel background -->
+        <img id="panelBg" crossorigin="anonymous"
+             src='data:image/svg+xml;utf8,
+             <svg xmlns="http://www.w3.org/2000/svg" width="1800" height="700" viewBox="0 0 1800 700">
+               <rect x="0" y="0" width="1800" height="700" rx="36" ry="36"
+                     fill="%230E1117" fill-opacity="0.78"/>
+             </svg>'>
       </a-assets>
 
       <!-- LIGHTS -->
@@ -86,20 +93,22 @@
                     rotation="0 0 0"
                     choice-flow
                     front-layer="order: 9000">
-            <!-- Panel background -->
-            <a-plane width="1.8" height="0.7"  <!-- increased height a bit --> <!-- <-- changed -->
-                     material="color: #0E1117; opacity: 0.85; shader: flat; transparent: true; depthTest: false; depthWrite: false"
-                     position="0 0 0.0001"></a-plane>
 
-            <!-- Chat prompt text (default top-ish) -->
+            <!-- NEW: dark translucent rounded rectangle background (always-on-top layer settings applied) -->
+            <a-image src="#panelBg" width="1.8" height="0.7" position="0 0 0.0001"
+                     material="shader: flat; transparent: true; depthTest: false; depthWrite: false">
+            </a-image>
+
+            <!-- Chat prompt text (bigger via scale) -->
             <a-entity id="chatPrompt"
-                      position="0 0.22 0.02"  <!-- default a bit higher --> <!-- <-- changed -->
+                      position="0 0.22 0.02"
+                      scale="1.35 1.35 1"   <!-- bigger prompt -->
                       text="value: What time period would you like to travel to?; color: #FFFFFF; align: center; width: 2.4">
             </a-entity>
 
             <!-- OPTIONS (script moves these per-step) -->
-            <a-entity id="optionsRow1" position="0 -0.02 0.02"></a-entity> <!-- <-- changed -->
-            <a-entity id="optionsRow2" position="0 -0.20 0.02"></a-entity> <!-- <-- changed -->
+            <a-entity id="optionsRow1" position="0 -0.02 0.02"></a-entity>
+            <a-entity id="optionsRow2" position="0 -0.20 0.02"></a-entity>
           </a-entity>
           <!-- >>> END CHAT PANEL <<< -->
         </a-entity>
@@ -219,7 +228,6 @@
               if (root) root.traverse(apply);
             };
             setAll();
-            // Re-apply when meshes appear later
             this.el.addEventListener('object3dset', setAll);
           }
         });
@@ -413,7 +421,6 @@
           bg.setAttribute('width','0.5');
           bg.setAttribute('height','0.12');
           bg.setAttribute('position','0 0 0.0005');
-          // ensure front layer props on materials
           bg.setAttribute('material','shader: flat; color: #2C3E50; opacity: 0.85; transparent: true; depthTest: false; depthWrite: false');
           root.appendChild(bg);
 
@@ -455,7 +462,6 @@
               });
             });
             el.addEventListener('click', ()=>{
-              /* ensure the selection event BUBBLES up to #chatRoot (choice-flow) */
               const ev = new CustomEvent('choice-selected', {
                 detail: { key: this.data.key, value: this.data.value },
                 bubbles: true
@@ -476,16 +482,17 @@
             this.showTimeOptions();
             this.el.addEventListener('choice-selected', (e)=> this.onChoice(e.detail));
           },
-          layoutForTimeStep: function(){ // <-- changed (explicit layout)
+          layoutForTimeStep: function(){
             this.prompt.setAttribute('position','0 0.22 0.02');
             this.optionsRow1.setAttribute('position','0 -0.02 0.02');
             this.optionsRow2.setAttribute('position','0 -0.20 0.02');
+            this.prompt.setAttribute('scale','1.35 1.35 1');   // keep big on step 1
           },
-          layoutForSeasonStep: function(){ // <-- changed (explicit layout)
-            // Prompt even higher; rows further down
+          layoutForSeasonStep: function(){
             this.prompt.setAttribute('position','0 0.26 0.02');
-            this.optionsRow1.setAttribute('position','0 -0.02 0.02');  // Fall / Winter
-            this.optionsRow2.setAttribute('position','0 -0.22 0.02');  // Spring / Summer
+            this.optionsRow1.setAttribute('position','0 -0.02 0.02');
+            this.optionsRow2.setAttribute('position','0 -0.22 0.02');
+            this.prompt.setAttribute('scale','1.35 1.35 1');   // big on step 2 as well
           },
           clearOptions: function(){
             [this.optionsRow1, this.optionsRow2].forEach(row => {
@@ -494,7 +501,7 @@
           },
           showTimeOptions: function(){
             this.clearOptions();
-            this.layoutForTimeStep(); // <-- changed
+            this.layoutForTimeStep();
             this.prompt.setAttribute('text','value','What time period would you like to travel to?');
             const opts = [
               {label:'Past', value:'past', x:-0.6, y:0},
@@ -505,7 +512,7 @@
           },
           showSeasonOptions: function(){
             this.clearOptions();
-            this.layoutForSeasonStep(); // <-- changed
+            this.layoutForSeasonStep();
             this.prompt.setAttribute('text','value','Okay! Now, what season would you like to see?');
             const row1 = [
               {label:'Fall', value:'fall', x:-0.55, y:0.10},
@@ -532,10 +539,9 @@
             const time = this.state.time.toLowerCase();
             const target = `${season}_${time}.html`;
 
-            // Hide the whole chat panel immediately so "Traveling..." stands alone
-            this.el.setAttribute('visible', false); // <-- changed
+            // Hide the chat panel so "Traveling..." stands alone
+            this.el.setAttribute('visible', false);
 
-            // Head-locked center overlay/fade
             const overlay = document.getElementById('travelOverlay');
             const text = document.getElementById('travelText');
             const fade = document.getElementById('fadePlane');
@@ -558,9 +564,6 @@
             }, 450);
           }
         });
-
-        /* ---------- Car UI button behavior (unchanged) ---------- */
-        AFRAME.registerComponent('ui-button-action', { /* defined above */});
       </script>
     </a-scene>
   </body>
