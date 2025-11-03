@@ -30,10 +30,10 @@
 
     <script>
       // Some browsers block autoplay; start playback on click
-      document.body.addEventListener('click', () => {
+      window.addEventListener('load', () => {
         const video = document.querySelector('#video360');
-        if (video.paused) video.play();
-      });
+        video.play().catch(err => console.warn('Autoplay prevented:', err));
+    });
     </script>
   </body>
 </html>
