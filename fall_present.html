@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Lake Norman — Present Day</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  </head>
+
+  <body>
+    <a-scene>
+      <!-- Assets -->
+      <a-assets>
+        <video
+          id="video360"
+          src="Image_to_Natural_Video_Generation.mp4"
+          loop
+          muted
+          playsinline
+          crossorigin="anonymous">
+        </video>
+      </a-assets>
+
+      <!-- 360° Background -->
+      <a-videosphere src="#video360" rotation="0 -90 0"></a-videosphere>
+
+      <!-- BOXES + TEXT -->
+      <a-box id="box1" position="0 1.6 -3" color="#D2691E" depth="0" height="0.4" width="0.4"></a-box>
+      <a-text id="text1"
+        value="The world has changed.\nWhere fire once fell, leaves now burn in color.\nLake Norman lies still — a mirror of gold and red."
+        position="0 2.0 -3" align="center" color="#FFF8DC"
+        width="4" visible="false" scale="0.5 0.5 0.5" look-at="[camera]">
+      </a-text>
+
+      <a-box id="box2" position="2.5 1.6 -3" color="#FF8C00" depth="0" height="0.4" width="0.4" visible="false"></a-box>
+      <a-text id="text2"
+        value="The air carries whispers of geese and the scent of pine.\nWhat once roared with chaos now hums with life."
+        position="2.5 1 -3" align="center" color="#FFF8DC"
+        width="4" visible="false" scale="0.75 0.75 0.75" look-at="[camera]">
+      </a-text>
+
+      <a-box id="box3" position="-2.5 1.6 -3" color="#4682B4" depth="0" height="0.4" width="0.4" visible="false"></a-box>
+      <a-text id="text3"
+        value="Yet beneath these calm waters lies the same ancient bedrock — a memory of fire, of endings, of beginnings."
+        position="-2.5 2.0 -3" align="center" color="#FFF8DC"
+        width="4" visible="false" scale="0.75 0.75 0.75" look-at="[camera]">
+      </a-text>
+
+      <!-- Camera + cursor -->
+      <a-entity camera look-controls position="0 1.6 0">
+        <a-entity 
+          cursor="fuse: false"
+          position="0 0 -1"
+          geometry="primitive: ring; radiusInner: 0.01; radiusOuter: 0.015"
+          material="color: white; shader: flat">
+        </a-entity>
+      </a-entity>
+
+      <!-- Buttons Panel -->
+      <a-entity id="uiPanelRoot" position="-0.8 1.0 -2.0" rotation="0 0 0">
+
+        <!-- Helper for creating identical buttons -->
+        <a-mixin id="button-style"
+                 geometry="primitive: plane; width: 0.28; height: 0.08"
+                 material="shader: flat; color: #2C3E50; opacity: 0.7; transparent: true">
+        </a-mixin>
+
+        <!-- Button: Present -->
+        <a-entity id="btnPresent" class="clickable"
+          ui-button="url: fall_present.html; label: Present"
+          mixin="button-style" position="0 0 0.001">
+          <a-entity text="value: Present; color: #FFFFFF; align: center; baseline: center; width: 1.6"
+                    position="0 0 0.0015"></a-entity>
+          <a-entity class="progress"
+            geometry="primitive: ring; radiusInner: 0.001; radiusOuter: 0.011; segmentsTheta: 64"
+            material="color: #FFFFFF; opacity: 0.9; shader: flat"
+            position="0 0 0.002" scale="0 0 0"></a-entity>
+        </a-entity>
+
+        <!-- Button: Past -->
+        <a-entity id="btnPast" class="clickable"
+          ui-button="url: fall_past.html; label: Past"
+          mixin="button-style" position="0 -0.11 0.001">
+          <a-entity text="value: Past; color: #FFFFFF; align: center; baseline: center; width: 1.6"
+                    position="0 0 0.0015"></a-entity>
+          <a-entity class="progress"
+            geometry="primitive: ring; radiusInner: 0.001; radiusOuter: 0.011; segmentsTheta: 64"
+            material="color: #FFFFFF; opacity: 0.9; shader: flat"
+            position="0 0 0.002" scale="0 0 0"></a-entity>
+        </a-entity>
+
+        <!-- Button: Future -->
+        <a-entity id="btnFuture" class="clickable"
+          ui-button="url: fall_future.html; label: Future"
+          mixin="button-style" position="0 -0.22 0.001">
+          <a-entity text="value: Future; color: #FFFFFF; align: center; baseline: center; width: 1.6"
+                    position="0 0 0.0015"></a-entity>
+          <a-entity class="progress"
+            geometry="primitive: ring; radiusInner: 0.001; radiusOuter: 0.011; segmentsTheta: 64"
+            material="color: #FFFFFF; opacity: 0.9; shader: flat"
+            position="0 0 0.002" scale="0 0 0"></a-entity>
+        </a-entity>
+
+        <!-- Button: Home -->
+        <a-entity id="btnHome" class="clickable"
+          ui-button="url: index.html; label: Home"
+          mixin="button-style" position="0 -0.33 0.001">
+          <a-entity text="value: Home; color: #FFFFFF; align: center; baseline: center; width: 1.6"
+                    position="0 0 0.0015"></a-entity>
+          <a-entity class="progress"
+            geometry="primitive: ring; radiusInner: 0.001; radiusOuter: 0.011; segmentsTheta: 64"
+            material="color: #FFFFFF; opacity: 0.9; shader: flat"
+            position="0 0 0.002" scale="0 0 0"></a-entity>
+        </a-entity>
+
+      </a-entity>
+    </a-scene>
+
+    <script>
+      /* --- Button hover + auto-click after 3 seconds --- */
+      AFRAME.registerComponent('ui-button', {
+        schema: { url: {type: 'string'}, label: {type: 'string'} },
+        init: function () {
+          const el = this.el;
+          const data = this.data;
+          const hoverTime = 3000; // 3 seconds to trigger
+          const baseColor = '#2C3E50';
+          const hoverColor = '#4AA3FF';
+          const progress = el.querySelector('.progress');
+          let hoverTimer = null;
+
+          el.addEventListener('mouseenter', () => {
+            el.setAttribute('material', 'color', hoverColor);
+            el.object3D.scale.set(1.05, 1.05, 1);
+            if (progress) {
+              progress.setAttribute('scale', '0.001 0.001 0.001');
+              progress.setAttribute('animation__grow', {
+                property: 'scale',
+                to: '1 1 1',
+                dur: hoverTime,
+                easing: 'linear'
+              });
+            }
+            hoverTimer = setTimeout(() => {
+              if (data.url) window.location.href = data.url;
+            }, hoverTime);
+          });
+
+          el.addEventListener('mouseleave', () => {
+            el.setAttribute('material', 'color', baseColor);
+            el.object3D.scale.set(1, 1, 1);
+            if (progress) {
+              progress.removeAttribute('animation__grow');
+              progress.setAttribute('scale', '0 0 0');
+            }
+            clearTimeout(hoverTimer);
+          });
+        }
+      });
+
+      /* --- Reveal boxes progressively --- */
+      document.addEventListener('DOMContentLoaded', () => {
+        const box1 = document.querySelector('#box1');
+        const box2 = document.querySelector('#box2');
+        const box3 = document.querySelector('#box3');
+        const text1 = document.querySelector('#text1');
+        const text2 = document.querySelector('#text2');
+        const text3 = document.querySelector('#text3');
+
+        box1.addEventListener('mouseenter', () => {
+          text1.setAttribute('visible', true);
+          setTimeout(() => box2.setAttribute('visible', true), 1500);
+        });
+        box1.addEventListener('mouseleave', () => text1.setAttribute('visible', false));
+
+        box2.addEventListener('mouseenter', () => {
+          text2.setAttribute('visible', true);
+          setTimeout(() => box3.setAttribute('visible', true), 1500);
+        });
+        box2.addEventListener('mouseleave', () => text2.setAttribute('visible', false));
+
+        box3.addEventListener('mouseenter', () => text3.setAttribute('visible', true));
+        box3.addEventListener('mouseleave', () => text3.setAttribute('visible', false));
+      });
+
+      /* --- Ensure video starts --- */
+      window.addEventListener('load', () => {
+        const video = document.querySelector('#video360');
+        if (video) video.play().catch(err => console.warn('Autoplay blocked:', err));
+      });
+    </script>
+  </body>
+</html>
