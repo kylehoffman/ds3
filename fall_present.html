@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>360° Video Example</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  </head>
+
+  <body>
+    <a-scene>
+      <!-- Load assets before using them -->
+      <a-assets>
+        <video
+          id="video360"
+          src="Image_to_Natural_Video_Generation.mp4" 
+          autoplay
+          loop
+          muted
+          playsinline
+          crossorigin="anonymous">
+        </video>
+      </a-assets>
+
+      <!-- Video sphere -->
+      <a-videosphere src="#video360" rotation="0 -90 0"></a-videosphere>
+
+      <!-- Ambient sounds -->
+      <a-sound src="url(leaves.mp3)" autoplay="true" loop="true" position="0 1.6 0"></a-sound>
+      <a-sound src="url(waves.mp3)" autoplay="true" loop="true" position="-15 0 -5"></a-sound>
+
+      <!-- Camera -->
+      <a-entity camera look-controls position="0 1.6 0"></a-entity>
+    </a-scene>
+
+    <script>
+      // Some browsers block autoplay; start playback on click
+      document.body.addEventListener('click', () => {
+        const video = document.querySelector('#video360');
+        if (video.paused) video.play();
+      });
+    </script>
+  </body>
+</html>

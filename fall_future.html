@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>360° Video Example</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  </head>
+
+  <body>
+    <a-scene>
+      <!-- Load assets before using them -->
+      <a-assets>
+        <video
+          id="video360"
+          src="Cybernetic_Forest_Rebirth_Video_Generation.mp4" 
+          autoplay
+          loop
+          muted
+          playsinline
+          crossorigin="anonymous">
+        </video>
+      </a-assets>
+
+      <!-- Video sphere -->
+      <a-videosphere src="#video360" rotation="0 -90 0"></a-videosphere>
+
+      <!-- Camera -->
+      <a-entity camera look-controls position="0 1.6 0"></a-entity>
+    </a-scene>
+
+    <script>
+      // Some browsers block autoplay; start playback on click
+      document.body.addEventListener('click', () => {
+        const video = document.querySelector('#video360');
+        if (video.paused) video.play();
+      });
+    </script>
+  </body>
+</html>
